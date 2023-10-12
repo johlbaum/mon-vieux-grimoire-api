@@ -103,3 +103,25 @@ exports.updateBook = (req, res) => {
       res.status(500).json({ error });
     });
 };
+
+exports.postRating = (req, res) => {
+  Book.findOne({ _id: req.params.id })
+    .then((book) => {
+      const updatedRating = {
+        ratings: [
+          ...book.ratings,
+          {
+            userId: req.auth.userId,
+            grade: req.body.rating,
+          },
+        ],
+      };
+      Book.updateOne({ _id: req.params.id }, updatedRating)
+        .then(() => {
+          return Book.findOne({ _id: req.params.id });
+        })
+        .then((updatedBook) => res.status(200).json(updatedBook))
+        .catch((error) => res.status(400).json({ error }));
+    })
+    .catch((error) => res.status(404).json({ error }));
+};
