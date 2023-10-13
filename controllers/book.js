@@ -107,21 +107,28 @@ exports.updateBook = (req, res) => {
 exports.postRating = (req, res) => {
   Book.findOne({ _id: req.params.id })
     .then((book) => {
-      const updatedRating = {
-        ratings: [
-          ...book.ratings,
-          {
-            userId: req.auth.userId,
-            grade: req.body.rating,
-          },
-        ],
-      };
-      Book.updateOne({ _id: req.params.id }, updatedRating)
-        .then(() => {
-          return Book.findOne({ _id: req.params.id });
-        })
-        .then((updatedBook) => res.status(200).json(updatedBook))
-        .catch((error) => res.status(400).json({ error }));
+      const userEverRated = book.ratings.some(
+        (user) => req.auth.userId === user.userId,
+      );
+      if (!userEverRated) {
+        const updatedRating = {
+          ratings: [
+            ...book.ratings,
+            {
+              userId: req.auth.userId,
+              grade: req.body.rating,
+            },
+          ],
+        };
+        Book.updateOne({ _id: req.params.id }, updatedRating)
+          .then(() => {
+            return Book.findOne({ _id: req.params.id });
+          })
+          .then((updatedBook) => res.status(200).json(updatedBook))
+          .catch((error) => res.status(400).json({ error }));
+      } else {
+        res.status(409).json({ message: 'User has already rated this book.' });
+      }
     })
     .catch((error) => res.status(404).json({ error }));
 };
