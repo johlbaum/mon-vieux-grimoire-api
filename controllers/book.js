@@ -111,7 +111,16 @@ exports.postRating = (req, res) => {
         (user) => req.auth.userId === user.userId,
       );
       if (!userEverRated) {
+        const totalRatings = book.ratings.reduce(
+          (sum, rating) => sum + rating.grade,
+          0,
+        );
+        const newAverageRating =
+          (totalRatings + req.body.rating) /
+          (book.ratings.length + 1).toFixed(2);
+
         const updatedRating = {
+          averageRating: newAverageRating,
           ratings: [
             ...book.ratings,
             {
