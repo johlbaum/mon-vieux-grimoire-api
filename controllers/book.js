@@ -9,6 +9,11 @@ exports.getAllBooks = (req, res) => {
 
 exports.createBook = (req, res) => {
   const bookObject = JSON.parse(req.body.book);
+
+  if (bookObject.userId != req.auth.userId) {
+    return res.status(403).json({ error: "unauthorized request" });
+  }
+
   const book = new Book({
     ...bookObject,
     userId: req.auth.userId,
@@ -19,7 +24,7 @@ exports.createBook = (req, res) => {
   book
     .save()
     .then(() => {
-      res.status(201).json({ message: 'Book saved' });
+      res.status(201).json({ message: 'book saved' });
     })
     .catch((error) => {
       res.status(400).json({ error });
@@ -46,13 +51,13 @@ exports.deleteBook = (req, res) => {
   Book.findOne({ _id: req.params.id })
     .then((book) => {
       if (book.userId != req.auth.userId) {
-        res.status(401).json({ message: 'Not authorized' });
+        res.status(403).json({ message: 'unauthorized request' });
       } else {
         const filename = book.imageUrl.split('/images/')[1];
         fs.unlink(`images/${filename}`, () => {
           Book.deleteOne({ _id: req.params.id })
             .then(() => {
-              res.status(200).json({ message: 'Book deleted' });
+              res.status(200).json({ message: 'book deleted' });
             })
             .catch((error) => res.status(401).json({ error }));
         });
@@ -67,7 +72,7 @@ exports.updateBook = (req, res) => {
   Book.findOne({ _id: req.params.id })
     .then((book) => {
       if (book.userId != req.auth.userId) {
-        res.status(401).json({ message: 'Not authorized' });
+        res.status(403).json({ message: 'unauthorized request' });
       } else {
         const filename = book.imageUrl.split('/images/')[1];
 
@@ -81,7 +86,7 @@ exports.updateBook = (req, res) => {
             },
           )
             .then(() => {
-              res.status(200).json({ message: 'Book updated' });
+              res.status(200).json({ message: 'book updated' });
             })
             .catch((error) => res.status(401).json({ error }));
         };
@@ -136,7 +141,7 @@ exports.postRating = (req, res) => {
           .then((updatedBook) => res.status(200).json(updatedBook))
           .catch((error) => res.status(400).json({ error }));
       } else {
-        res.status(409).json({ message: 'User has already rated this book' });
+        res.status(409).json({ message: 'user has already rated this book' });
       }
     })
     .catch((error) => res.status(404).json({ error }));
