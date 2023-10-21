@@ -121,8 +121,7 @@ exports.postRating = (req, res) => {
           0,
         );
         const newAverageRating =
-          (totalRatings + req.body.rating) /
-          (book.ratings.length + 1).toFixed(1);
+        Number((totalRatings + req.body.rating) / (book.ratings.length + 1)).toFixed(1);
 
         const updatedRating = {
           averageRating: newAverageRating,
